@@ -2,6 +2,9 @@
 numpy>=1.21.0
 pyyaml>=5.4.0
 
+# Deployment requirements
+paramiko>=2.11.0
+
 # Optional hardware (Raspberry Pi)
 # RPi.GPIO>=0.7.0
 # picamera2>=0.3.0
