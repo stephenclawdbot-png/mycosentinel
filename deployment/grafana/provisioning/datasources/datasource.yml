@@ -1,0 +1,31 @@
+# Grafana Datasource Configuration
+# Place in: ./grafana/provisioning/datasources/datasource.yml
+
+apiVersion: 1
+
+datasources:
+  # InfluxDB v2 time-series database
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    secureJsonData:
+      token: mycosentinel-token-12345-change-me
+    jsonData:
+      version: Flux
+      organization: mycosentinel
+      defaultBucket: sensor-data
+      tlsSkipVerify: true
+    isDefault: true
+    editable: true
+  
+  # MQTT datasource (for live data)
+  - name: MQTT
+    type: grafana-mqtt-datasource
+    access: proxy
+    url: mqtt://mosquitto:1883
+    jsonData:
+      username: gateway
+    secureJsonData:
+      password: change_me_now
+    editable: true

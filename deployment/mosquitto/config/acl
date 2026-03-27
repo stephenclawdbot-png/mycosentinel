@@ -1,0 +1,23 @@
+# MycoSentinel MQTT ACL Rules
+# Place in: ./mosquitto/config/acl
+
+# Gateways can read/write everything
+user gateway
+topic readwrite #
+
+# Nodes can only publish to their own topics
+# Pattern substitution: %c = client id, %u = username
+
+pattern write mycosentinel/nodes/%u/data
+topic write mycosentinel/nodes/%u/status
+topic read mycosentinel/nodes/%u/cmd
+
+# Allow nodes to subscribe to commands
+topic read mycosentinel/broadcast/cmd
+
+# System topics (for metrics)
+topic readwrite $SYS/#
+
+# Bridge (if configured)
+pattern write mycosentinel/local/#
+pattern read mycosentinel/remote/#

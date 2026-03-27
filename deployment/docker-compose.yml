@@ -1,0 +1,233 @@
+# MycoSentinel Gateway Node - Docker Compose
+# Deploys full stack for a 10-node field network
+# 
+# Usage:
+#   cd ~/deployment
+#   docker-compose up -d
+#   docker-compose logs -f
+#
+# Services:
+#   - mosquitto: MQTT broker for node communication
+#   - influxdb: Time-series database for sensor data
+#   - grafana: Dashboard and visualization
+#   - nodered: Flow-based automation and alerts
+#   - telegraf: Data ingestion from MQTT to InfluxDB
+
+version: "3.8"
+
+services:
+  # ============================================================================
+  # MQTT Broker - Core communication hub for all sensor nodes
+  # ============================================================================
+  mosquitto:
+    image: eclipse-mosquitto:2.0.18
+    container_name: mycosentinel-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"      # Standard MQTT
+      - "9001:9001"      # WebSocket (for browser dashboards)
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    environment:
+      - PUID=1000
+      - PGID=1000
+    networks:
+      - mycosentinel-net
+    healthcheck:
+      test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "health", "-m", "test"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================================================
+  # InfluxDB - Time-series database for all sensor readings
+  # ============================================================================
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: mycosentinel-influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - ./influxdb/config:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=mycosentinel_admin_pass  # CHANGE THIS!
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=mycosentinel-token-12345-change-me
+      - DOCKER_INFLUXDB_INIT_ORG=mycosentinel
+      - DOCKER_INFLUXDB_INIT_BUCKET=sensor-data
+    networks:
+      - mycosentinel-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================================================
+  # Telegraf - Data pipeline: MQTT → InfluxDB
+  # ============================================================================
+  telegraf:
+    image: telegraf:1.28-alpine
+    container_name: mycosentinel-telegraf
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+      - influxdb
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    environment:
+      - INFLUX_TOKEN=mycosentinel-token-12345-change-me
+      - INFLUX_URL=http://influxdb:8086
+      - MQTT_BROKER=mosquitto
+    networks:
+      - mycosentinel-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================================================
+  # Grafana - Visualization and alerting dashboard
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:10.2.3
+    container_name: mycosentinel-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=mycosentinel_grafana_pass  # CHANGE THIS!
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - GF_SERVER_ROOT_URL=http://192.168.1.100:3000
+      - GF_SMTP_ENABLED=false  # Set to true to enable email alerts
+      #- GF_SMTP_HOST=smtp.gmail.com:587
+      #- GF_SMTP_USER=your-email@gmail.com
+      #- GF_SMTP_PASSWORD=your-app-password
+      #- GF_SMTP_FROM_ADDRESS=mycosentinel@yourdomain.com
+    depends_on:
+      - influxdb
+    networks:
+      - mycosentinel-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================================================
+  # Node-RED - Flow-based automation and alerts
+  # ============================================================================
+  nodered:
+    image: nodered/node-red:3.1.0
+    container_name: mycosentinel-nodered
+    restart: unless-stopped
+    ports:
+      - "1880:1880"
+    volumes:
+      - nodered-data:/data
+      - ./nodered/flows.json:/data/flows.json:ro
+      - ./nodered/settings.js:/data/settings.js:ro
+    environment:
+      - TZ=UTC
+    depends_on:
+      - mosquitto
+      - influxdb
+    networks:
+      - mycosentinel-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================================================
+  # Optional: Portainer - Docker management UI (for remote management)
+  # ============================================================================
+  # Uncomment for remote container management
+  # portainer:
+  #   image: portainer/portainer-ce:2.19.4
+  #   container_name: mycosentinel-portainer
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8000:8000"
+  #     - "9443:9443"
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - portainer-data:/data
+  #   networks:
+  #     - mycosentinel-net
+
+  # ============================================================================
+  # Optional: WireGuard VPN (for remote access to gateway)
+  # ============================================================================
+  # wireguard:
+  #   image: linuxserver/wireguard:latest
+  #   container_name: mycosentinel-wireguard
+  #   cap_add:
+  #     - NET_ADMIN
+  #     - SYS_MODULE
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - SERVERURL=auto
+  #     - SERVERPORT=51820
+  #     - PEERS=laptop,phone  # Add client names
+  #     - PEERDNS=auto
+  #     - INTERNAL_SUBNET=10.13.13.0
+  #   volumes:
+  #     - ./wireguard/config:/config
+  #   ports:
+  #     - "51820:51820/udp"
+  #   sysctls:
+  #     - net.ipv4.conf.all.src_valid_mark=1
+  #   networks:
+  #     - mycosentinel-net
+
+# ==============================================================================
+# Networks
+# ==============================================================================
+networks:
+  mycosentinel-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ==============================================================================
+# Volumes (persistent data)
+# ==============================================================================
+volumes:
+  influxdb-data:
+    driver: local
+  grafana-data:
+    driver: local
+  nodered-data:
+    driver: local
+  # portainer-data:
+  #   driver: local

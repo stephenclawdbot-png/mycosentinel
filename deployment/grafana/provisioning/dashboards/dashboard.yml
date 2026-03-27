@@ -1,0 +1,17 @@
+# Grafana Dashboard Provider Configuration
+# Place in: ./grafana/provisioning/dashboards/dashboard.yml
+
+apiVersion: 1
+
+providers:
+  - name: 'MycoSentinel Dashboards'
+    orgId: 1
+    folder: 'MycoSentinel'
+    folderUid: ''
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
