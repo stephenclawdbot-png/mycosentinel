@@ -1,0 +1,93 @@
+{
+  "timestamp": 1774649509.799936,
+  "nodes": 10,
+  "total_readings": 287,
+  "node_data": [
+    {
+      "node_id": "MS-A1",
+      "sector": "A",
+      "registered": false,
+      "sequence_num": 30,
+      "contaminated": false,
+      "toxin": null
+    },
+    {
+      "node_id": "MS-A2",
+      "sector": "A",
+      "registered": false,
+      "sequence_num": 29,
+      "contaminated": false,
+      "toxin": null
+    },
+    {
+      "node_id": "MS-A3",
+      "sector": "A",
+      "registered": false,
+      "sequence_num": 29,
+      "contaminated": false,
+      "toxin": null
+    },
+    {
+      "node_id": "MS-B1",
+      "sector": "B",
+      "registered": false,
+      "sequence_num": 29,
+      "contaminated": false,
+      "toxin": null
+    },
+    {
+      "node_id": "MS-B2",
+      "sector": "B",
+      "registered": false,
+      "sequence_num": 29,
+      "contaminated": false,
+      "toxin": null
+    },
+    {
+      "node_id": "MS-B3",
+      "sector": "B",
+      "registered": false,
+      "sequence_num": 29,
+      "contaminated": false,
+      "toxin": null
+    },
+    {
+      "node_id": "MS-C1",
+      "sector": "C",
+      "registered": false,
+      "sequence_num": 28,
+      "contaminated": false,
+      "toxin": null
+    },
+    {
+      "node_id": "MS-C2",
+      "sector": "C",
+      "registered": false,
+      "sequence_num": 28,
+      "contaminated": false,
+      "toxin": null
+    },
+    {
+      "node_id": "MS-C3",
+      "sector": "C",
+      "registered": false,
+      "sequence_num": 28,
+      "contaminated": false,
+      "toxin": null
+    },
+    {
+      "node_id": "MS-D1",
+      "sector": "D",
+      "registered": false,
+      "sequence_num": 28,
+      "contaminated": false,
+      "toxin": null
+    }
+  ],
+  "toxin_profiles": [
+    "aflatoxin_b1",
+    "ochratoxin_a",
+    "deoxynivalenol",
+    "zearalenone"
+  ]
+}

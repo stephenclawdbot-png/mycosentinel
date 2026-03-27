@@ -1,0 +1,53 @@
+{
+  "project": "MycoSentinel 10-Node Test Network",
+  "version": "1.0.0",
+  "gateway": {
+    "id": "MS-GW",
+    "hostname": "mycosentinel-gateway",
+    "ip": "10.0.0.1",
+    "hardware": "raspberry_pi_4b_4gb",
+    "services": {
+      "mqtt_port": 1883,
+      "api_port": 8000,
+      "influxdb_port": 8086
+    }
+  },
+  "network": {
+    "type": "wifi_mesh",
+    "protocol": "batman_adv",
+    "ssid": "MycoSentinelMesh",
+    "gateway_ip": "10.0.0.1",
+    "subnet": "10.0.0.0/24",
+    "dhcp_range": "10.0.0.100-10.0.0.200"
+  },
+  "nodes": [
+    {"id": "MS-A1", "hostname": "mycosentinel-a1", "static_ip": "10.0.0.11", "sector": "A", "location": {"x": 10, "y": 10}, "hardware": "raspberry_pi_zero_2w", "sensors": {"optical": true, "electrical": true}, "power": {"source": "usb", "voltage_v": 5}},
+    {"id": "MS-A2", "hostname": "mycosentinel-a2", "static_ip": "10.0.0.12", "sector": "A", "location": {"x": 30, "y": 10}, "hardware": "raspberry_pi_zero_2w", "sensors": {"optical": true, "electrical": true}, "power": {"source": "usb", "voltage_v": 5}},
+    {"id": "MS-A3", "hostname": "mycosentinel-a3", "static_ip": "10.0.0.13", "sector": "A", "location": {"x": 50, "y": 10}, "hardware": "raspberry_pi_zero_2w", "sensors": {"optical": true, "electrical": true}, "power": {"source": "usb", "voltage_v": 5}},
+    {"id": "MS-B1", "hostname": "mycosentinel-b1", "static_ip": "10.0.0.21", "sector": "B", "location": {"x": 10, "y": 30}, "hardware": "raspberry_pi_zero_2w", "sensors": {"optical": true, "electrical": true}, "power": {"source": "usb", "voltage_v": 5}},
+    {"id": "MS-B2", "hostname": "mycosentinel-b2", "static_ip": "10.0.0.22", "sector": "B", "location": {"x": 30, "y": 30}, "hardware": "raspberry_pi_zero_2w", "sensors": {"optical": true, "electrical": true}, "power": {"source": "usb", "voltage_v": 5}},
+    {"id": "MS-B3", "hostname": "mycosentinel-b3", "static_ip": "10.0.0.23", "sector": "B", "location": {"x": 50, "y": 30}, "hardware": "raspberry_pi_zero_2w", "sensors": {"optical": true, "electrical": true}, "power": {"source": "usb", "voltage_v": 5}},
+    {"id": "MS-C1", "hostname": "mycosentinel-c1", "static_ip": "10.0.0.31", "sector": "C", "location": {"x": 10, "y": 50}, "hardware": "raspberry_pi_zero_2w", "sensors": {"optical": true, "electrical": true}, "power": {"source": "usb", "voltage_v": 5}},
+    {"id": "MS-C2", "hostname": "mycosentinel-c2", "static_ip": "10.0.0.32", "sector": "C", "location": {"x": 30, "y": 50}, "hardware": "raspberry_pi_zero_2w", "sensors": {"optical": true, "electrical": true}, "power": {"source": "usb", "voltage_v": 5}},
+    {"id": "MS-C3", "hostname": "mycosentinel-c3", "static_ip": "10.0.0.33", "sector": "C", "location": {"x": 50, "y": 50}, "hardware": "raspberry_pi_zero_2w", "sensors": {"optical": true, "electrical": true}, "power": {"source": "usb", "voltage_v": 5}},
+    {"id": "MS-D1", "hostname": "mycosentinel-d1", "static_ip": "10.0.0.41", "sector": "D", "location": {"x": 10, "y": 70}, "hardware": "raspberry_pi_zero_2w", "sensors": {"optical": true, "electrical": true}, "power": {"source": "usb", "voltage_v": 5}},
+    {"id": "MS-D2", "hostname": "mycosentinel-d2", "static_ip": "10.0.0.42", "sector": "D", "location": {"x": 30, "y": 70}, "hardware": "raspberry_pi_zero_2w", "sensors": {"optical": true, "electrical": true}, "power": {"source": "usb", "voltage_v": 5}}
+  ],
+  "thresholds": {
+    "anomaly_score_warning": 0.5,
+    "anomaly_score_critical": 0.8,
+    "battery_warning_percent": 20,
+    "battery_critical_percent": 10,
+    "rssi_weak_dbm": -80,
+    "rssi_critical_dbm": -90
+  },
+  "data_retention": {
+    "raw_days": 7,
+    "aggregated_days": 365
+  },
+  "firmware": {
+    "version": "0.1.0",
+    "build_date": "2026-03-28",
+    "update_channel": "stable"
+  }
+}
