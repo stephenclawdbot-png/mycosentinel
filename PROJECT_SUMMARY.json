@@ -1,0 +1,47 @@
+{
+  "id": "MYCOSENTINEL-001",
+  "name": "MycoSentinel Biosensor Network",
+  "type": "continuous_build",
+  "subtype": "bioscience_tech",
+  "status": "complete_v0.1.0",
+  "built_at": "2026-03-28T03:59:00+08:00",
+  "description": "Distributed living biosensor network using engineered fungi. Complete working system: bioreactor controller, optical/electrical sensors, signal processing pipeline, ML inference, MQTT/HTTP networking, web dashboard.",
+  "architecture": {
+    "components": [
+      "bioreactor.py - Hardware control (temperature, humidity, LEDs)",
+      "sensor.py - Optical fluorescence + electrochemical readings",
+      "pipeline.py - Signal processing + ML anomaly detection",
+      "network.py - Distributed sensor nodes + gateway",
+      "dashboard.py - Real-time web UI"
+    ],
+    "design_pattern": "Event-driven, async-capable, mock-compatible"
+  },
+  "hardware": {
+    "platform": "Raspberry Pi Zero 2 W",
+    "sensors": ["Pi Camera (optical)", "ADS1115 ADC (electrical)"],
+    "actuators": ["Heating pad", "Misting system", "LED excitation"],
+    "bom_cost_usd": 100
+  },
+  "biological": {
+    "chassis": "Saccharomyces cerevisiae",
+    "detection": "GFP expression via promoter activation",
+    "targets": ["Heavy metals", "Pesticides", "PFAS"]
+  },
+  "deployment": {
+    "mode": "pip install -e .",
+    "cli": "mycosentinel run --config mysensor.yaml",
+    "dashboard": "http://localhost:8080"
+  },
+  "what_makes_it_work": [
+    "Abandoned research revived with 2024 tech (CRISPR kits $500, Pi cameras)",
+    "ML filters biological noise (was manual lab work)",
+    "MQTT networking enables distributed cities",
+    "3D printed reactors (was glass bioreactors)"
+  ],
+  "next_steps": [
+    "Deploy 10-node test network",
+    "Field calibration against lab standards",
+    "Genetic circuit refinement",
+    "Solar power integration"
+  ]
+}

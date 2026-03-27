@@ -1,0 +1,38 @@
+Part Name,Description,Supplier,Part Number,Qty,Unit Cost,Total,URL/Search Term,Priority
+ESP32 Main Controller,"ESP32 WROOM-32 DevKit v1, 30-pin, WiFi + Bluetooth",Amazon,ESP32-DevKitC,1,4.50,4.50,"esp32 devkit v1",Must Have
+DHT22 Sensor,"AM2302 Temperature Humidity Sensor, Digital",Amazon,B01DKC2GQ0,1,3.00,3.00,"dht22 temperature humidity",Must Have
+NTC Thermistor,"10K 3950 NTC Thermistor, Glass Bead, Pack of 10",Amazon,B01N7V5367,1,0.50,0.50,"10k ntc thermistor",Must Have
+pH Sensor Module,"Analog pH Sensor Kit v1.0 with Probe, BNC",AliExpress,PH-4502C,1,8.00,8.00,"PH-4502C pH sensor",Must Have
+Ag/AgCl Reference Electrode,"Silver/Silver Chloride Reference Electrode, 6mm",AliExpress,RE-1C,1,4.00,4.00,"Ag/AgCl reference electrode",Must Have
+Graphite Pencil Leads,"0.5mm HB Mechanical Pencil Leads, 60-pack",Stationery Store,Generic,1,2.00,2.00,"0.5mm hb pencil leads",Must Have
+Graphite Pencil Leads,"0.7mm HB Mechanical Pencil Leads, 40-pack",Stationery Store,Generic,1,2.00,2.00,"0.7mm hb pencil leads",Must Have
+Potentiostat IC,"LMP91000SDE/NOPB, Programmable AFE for Electrochemical Sensors",Digi-Key,296-35475-1-ND,1,6.00,6.00,"LMP91000",Must Have
+Op-Amp IC,"LMP7721MF, Ultra-Low Input Bias Op-Amp",Digi-Key,296-22653-1-ND,1,3.50,3.50,"LMP7721MF",Must Have
+Silicone Heating Pad,"12V 5W Silicone Heater, 25x50mm",AliExpress,SR-1250-5W,1,2.50,2.50,"12V silicone heater 5W",Must Have
+MOSFET Transistor,"IRLZ44N, Logic Level N-Channel MOSFET, 60V 47A",Amazon,B01N1IO4MK,1,0.30,0.30,"IRLZ44N",Must Have
+MOSFET Heat Sink,"TO-220 Mini Heat Sinks, Pack of 10",Amazon,B078W5V97Y,1,0.50,0.50,"to-220 heatsink",Optional
+DC-DC Converter,"LM2596 Step-Down Converter, Adjustable",Amazon,B00U80T7HG,1,1.50,1.50,"LM2596 DC-DC",Must Have
+USB Power Supply,"5V 2A USB Wall Adapter",Amazon,B01M0KJY3M,1,3.00,3.00,"5v 2a usb power supply",Must Have
+18650 Battery,"Li-ion 18650 3.7V 2600mAh Protected Cell",Amazon,B07KWPZRXR,2,3.00,6.00,"18650 protected battery",Recommended
+Battery Holder,"18650 Battery Holder 2x with Wire Leads",Amazon,B07CQ1D261,1,0.75,0.75,"18650 battery holder",Recommended
+TP4056 Module,"TP4056 Charger + DW01 Protection Module",Amazon,B00P2QWTR8,1,1.00,1.00,"TP4056 charger module",Recommended
+Solar Panel,"6V 1W Solar Panel for Battery Charging",AliExpress,6V-1W-SOLAR,1,4.00,4.00,"6v 1w solar panel",Optional
+Breadboard,"Half-Size Breadboard 400 Tie Points, 3 Pack",Amazon,B01EV6SBQQ,1,3.00,3.00,"breadboard",Must Have
+Jumper Wires,"Dupont Jumper Wires M-M/M-F/F-F, 120pcs",Amazon,B01L5UL9FA,1,2.50,2.50,"jumper wires",Must Have
+Resistor Kit,"1/4W Resistor Kit 2600pcs (1Ω-10MΩ)",Amazon,B08Q2MKC8J,1,2.00,2.00,"resistor kit",Must Have
+Capacitor Kit,"Ceramic Capacitor Kit 104pcs",Amazon,B07Z8JZTVB,1,1.50,1.50,"ceramic capacitor kit",Must Have
+OLED Display,"0.96"" I2C OLED SSD1306, 128x64",Amazon,B0BB4BB4S7,1,3.00,3.00,"ssd1306 oled",Optional
+RTC Module,"DS3231 I2C Real Time Clock Module",Amazon,B06WV6Z7PX,1,1.50,1.50,"ds3231 rtc module",Optional
+LoRa Module,"SX1276 433MHz LoRa Module",AliExpress,SX1276-433,1,4.00,4.00,"sx1276 lora module",Optional
+PETG Filament,"PETG 3D Printer Filament, 1kg Natural",Amazon,B07Z3DXQ7N,1,15.00,15.00,"petg filament",Must Have
+O-Ring Seal,"25mm ID x 2mm CS Silicone O-Ring, 10-pack",Amazon,B07X5K8QJD,1,1.00,1.00,"25mm silicone o-ring",Must Have
+Syringe Filter,"0.22μm Sterile Syringe Filters, 10-pack",Amazon,B07S8VYXSJ,1,5.00,5.00,"0.22um syringe filter",Recommended
+Syringe Filter,"Hepa Vent Filter for Air/Gas",Amazon,B07MD5W3QH,1,3.00,3.00,"hepa gas filter",Optional
+Solder,"60/40 Rosin Core Solder Wire, 0.8mm",Amazon,B00NTR5R0G,1,4.00,4.00,"solder wire",Must Have
+Heat Shrink Tubing,"Heat Shrink Tubing Assortment Pack",Amazon,B07TYS3LJB,1,3.00,3.00,"heat shrink tubing",Must Have
+Alligator Clips,"Alligator Clips Test Leads, 10-pack",Amazon,B07QGW4X4B,1,2.00,2.00,"alligator clips",Recommended
+Multimeter,"Digital Multimeter, Basic",Amazon,B002PXSOHM,1,8.00,8.00,"digital multimeter",Recommended
+Soldering Iron,"Soldering Iron Kit 60W Adjustable",Amazon,B01N448LZ7,1,12.00,12.00,"soldering iron kit",Recommended
+Desiccant,"Silica Gel Desiccant Packets, 50pcs",Amazon,B07XLRV1L5,1,3.00,3.00,"silica gel desiccant",Optional
+,,,,SUBTOTAL CORE (~$66),66.00,,
+,,,,SUBTOTAL WITH OPTIONS (~$90),89.95,,

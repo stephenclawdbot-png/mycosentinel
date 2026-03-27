@@ -1,0 +1,18 @@
+# requirements.txt - MycoSentinel Core Dependencies
+numpy>=1.21.0
+pyyaml>=5.4.0
+
+# Optional hardware (Raspberry Pi)
+# RPi.GPIO>=0.7.0
+# picamera2>=0.3.0
+
+# Optional dashboard
+# fastapi>=0.75.0
+# uvicorn>=0.17.0
+
+# Optional network
+# paho-mqtt>=1.6.0
+# requests>=2.27.0
+
+# Optional ML
+# tensorflow>=2.8.0

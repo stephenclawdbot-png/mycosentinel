@@ -1,0 +1,291 @@
+================================================================================
+                    MYCO-SENTINEL COMPLETE WIRING DIAGRAM
+================================================================================
+
+                         USB POWER INPUT
+                              │
+                              │ 5V 2A
+                              ▼
+                    ┌─────────────────┐
+                    │   ESP32-S Dev   │
+                    │                 │
+                    │  GND ───┬─── 3V3 │◄───────┐
+                    │         │        │        │
+                    │  5V ────┼────────│◄─┐     │
+                    │         │        │  │     │
+                    │ GPIO 15─┼───I2C──┼──┼─────┼──► OLED SDA
+                    │ GPIO 16─┼──SCL───┼──┼─────┼──► OLED SCL
+                    │ GPIO 17─┼──I2C──┼──┼─────┴──► DS3231 SDA
+                    │ GPIO 18─┼──SCL───┼──┴────────► DS3231 SCL
+                    │         │        │
+                    │ GPIO 5 ─┼──CS────┼────────────► LMP91000 CS
+                    │ GPIO 13─┼──SCK───┼────────────► LMP91000 SCK
+                    │ GPIO 14─┼──MOSI──┼────────────► LMP91000 SDI
+                    │ GPIO 12─┼──MISO──┼────────────► LMP91000 SDO
+                    │ GPIO 34─┼──ADC───┼────────────► pH Sensor
+                    │ GPIO 35─┼──ADC───┼────────────► NTC Thermistor
+                    │ GPIO 32─┼──ADC───┼────────────► LMP91000 OUT
+                    │ GPIO  2─┼────────┼────────────► DHT22 Data
+                    │ GPIO  4─┼────────┼────────────► Heater Control
+                    └─────────┴────────┘
+
+================================================================================
+                    ELECTROCHEMICAL CELL DETAIL
+================================================================================
+
+                    ┌─────────────────────────────┐
+                    │      BIOREACTOR CHAMBER     │
+                    │                             │
+                    │        ┌───────┐            │
+                    │        │Sample │            │
+                    │        │Fungal │            │
+                    │        │Fluid  │            │
+                    │        └───┬───┘            │
+                    │            │                 │
+                    │     ┌──────┴──────┐          │
+                    │     │             │          │
+                    │  ┌──┴──┐      ┌───┴──┐       │
+                    │  │ WE  │      │  CE  │       │
+                    │  │0.5mm│      │0.7mm │       │
+                    │  │graph│      │graph │       │
+                    │  └──┬──┘      └──┬───┘       │
+                    │     │            │            │
+                    │     │    ┌───┐   │            │
+                    │     │    │RE │   │            │
+                    │     │    │   │   │            │
+                    │     └────┤Ag/├───┘            │
+                    │          │Cl │                │
+                    │          └─┬─┘                │
+                    │            │                  │
+                    └────────────┼──────────────────┘
+                                 │
+         WE ──────┬───────────────┘
+                 │
+    ┌────────────┴────────────┐
+    │  LMP91000 PINS          │
+    │                         │
+    │  WE ───► Analog Input   │
+    │  RE ───► Reference Set  │
+    │  CE ───► Ground Return  │
+    │  VOUT ─► ESP32 ADC      │
+    │                         │
+    └─────────────────────────┘
+
+    CONNECTION TABLE:
+    ┌──────────┬──────────────────────────────┬──────────┐
+    │ LMP91000 │ Connects To                  │ Voltage  │
+    ├──────────┼──────────────────────────────┼──────────┤
+    │ VCC      │ ESP32 3.3V                   │ 3.3V     │
+    │ GND      │ Common Ground                │ GND      │
+    │ CSB      │ ESP32 GPIO 5                 │ 3.3V     │
+    │ SCLK     │ ESP32 GPIO 13                │ 3.3V     │
+    │ SDI      │ ESP32 GPIO 14                │ 3.3V     │
+    │ SDO      │ ESP32 GPIO 12                │ 3.3V     │
+    │ C1       │ 100nF Capacitor to C2        │          │
+    │ C2       │ 100nF Capacitor to GND       │          │
+    │ WE       │ Graphite Lead (0.5mm)       │ Varies   │
+    │ RE       │ Ag/AgCl Electrode            │ ~200mV   │
+    │ CE       │ Graphite Lead (0.7mm)       │ Varies   │
+    │ VREF     │ 2.5V Reference (RE level)    │ 2.5V     │
+    │ VOUT     │ ESP32 GPIO 32 (ADC)          │ 0-3.3V   │
+    └──────────┴──────────────────────────────┴──────────┘
+
+================================================================================
+                    TEMPERATURE SENSOR (NTC)
+================================================================================
+
+    3.3V from ESP32
+        │
+        │
+      ┌─┴─┐ 10K Pull-up
+      │10K│ 5% tolerance
+      └───┘
+        │
+        ├──────────────────► ESP32 GPIO 35 (ADC)
+        │
+      ┌─┴─┐
+      │NTC│ 10K @ 25°C (Beta 3950)
+      │10K│ Glass bead thermistor
+      └───┘
+        │
+       GND
+
+    ADC Voltage to Temperature (Steinhart-Hart):
+    
+    Vout = 3.3V × (Rntc / (10K + Rntc))
+    Rntc = 10K × exp(3950 × (1/T - 1/298.15))
+    
+    Or simplified Beta equation:
+    1/T = 1/298.15 + (1/3950) × ln(Rntc/10000)
+
+================================================================================
+                    HEATER CONTROL CIRCUIT
+================================================================================
+
+    5V from ESP32
+        │
+        ▼
+    ┌───────────┐
+    │ LM2596    │ 5V to 12V step-up
+    │ Buck      │ (set to 12V output)
+    │ Converter │
+    └─────┬─────┘
+          │ 12V
+          │
+          ├─────────────────┐
+          │                 │
+          │               ┌─┴─┐
+          │               │Sil│
+          │               │ico│ Silicone Heating Pad
+          │               │ne │ 12V 5W = 417mA
+          │               │Pad│ Resistance: ~28.8Ω
+          │               └─┬─┘
+          │                 │
+          │                 │
+          │               ┌─┴───┐
+          │               │ D──S│
+          │      ┌────────┤R    │ IRLZ44N
+          │      │        │G    │ N-MOSFET
+    ESP32 │    ┌─┴─┐      │     │
+   GPIO 4 ├────┤10K│      └──┬──┘
+    3.3V  │    └───┘         │
+  (PWM)   │      │          GND
+          │      │
+          │      ▼
+         GND   GND
+
+    IMPORTANT:
+    • Use LOGIC-LEVEL MOSFET (IRLZ44N not IRFZ44N)
+    • 10K pulldown keeps MOSFET OFF during ESP32 boot
+    • PWM frequency: 1kHz (heating is slow response)
+    • Duty cycle: 0-255 maps to 0-100% heater power
+    • Add temperature safety cutoff in firmware!
+
+================================================================================
+                    PH SENSOR CONNECTION
+================================================================================
+
+    PH-4502C Module Pinout:
+    ┌──────────────────────────────┐
+    │          FRONT VIEW          │
+    │   ┌──────────────────┐       │
+    │   │  pH Probe (BNC)  │       │
+    │   └────────┬─────────┘       │
+    │            │                  │
+    │    ┌───────┴───────┐          │
+    │    │ VCC  GND  TX │          │
+    │    │  │    │    │  │          │
+    │    └──┼────┼────┼──┘          │
+    │       │    │    │              │
+    │       │    │    └──────────► Not Connected
+    │       │    │
+    │       │    └──────────────► ESP32 GND
+    │       └───────────────────► ESP32 5V
+    └──────────────────────────────┘
+    
+    Module OUTPUT pin (analog):
+    PH_OUT ────────────────────► ESP32 GPIO 34 (ADC)
+    
+    Calibration:
+    pH 7.0 = ~2.5V output (midpoint)
+    pH 4.0 = ~3.2V output (acid)
+    pH 10.0 = ~1.8V output (base)
+    
+    Slope: ~59mV per pH unit at 25°C
+
+================================================================================
+                    DHT22 HUMIDITY/TEMPERATURE
+================================================================================
+
+    DHT22 (AM2302) Pinout (Front view):
+    
+           ┌─────────────┐
+           │  ┌───────┐  │
+           │  │ SDA   │  │ Pin 2: Data  ───► ESP32 GPIO 2
+           │  │ VCC   │  │ Pin 1: VCC   ───► ESP32 3.3V
+           │  │ ───   │  │ Pin 3: NC    ───► (No Connect)
+           │  │ GND   │  │ Pin 4: GND   ───► ESP32 GND
+           │  └───────┘  │
+           └─────────────┘
+    
+    NOTE: Some modules have built-in pull-up resistor.
+    If not, add 10K pull-up between DATA and VCC.
+    
+    Library: Adafruit DHT Sensor Library (Arduino IDE)
+
+================================================================================
+                    POWER OPTIONS
+================================================================================
+
+    OPTION A: USB Wall Power (Simplest)
+    ───────────
+    5V Adapter ──► ESP32 USB ──► All peripherals powered from 3.3V regulator
+    
+    
+    OPTION B: Battery Powered (Portable)
+    ───────────
+    18650 Cell ──► TP4056 Module ──► 4.2V max
+                          │
+                          ▼
+                   ESP32 VIN pin
+    
+    
+    OPTION C: Solar + Battery (Field Deploy)
+    ───────────
+    Solar Panel (6V 1W) ──► TP4056 ──► 18650 ──► ESP32 VIN
+                                   │
+                                   └──────────► Load switch
+    
+    POWER BUDGET (at 5V):
+    ┌────────────────────┬─────────┬──────────┐
+    │ Component          │ Current │ Power    │
+    ├────────────────────┼─────────┼──────────┤
+    │ ESP32 (WiFi on)   │  80mA   │ 400mW    │
+    │ LMP91000          │   1mA   │   5mW    │
+    │ DHT22             │   1mA   │   5mW    │
+    │ OLED Display      │  20mA   │ 100mW    │
+    │ Heater (avg 30%)  │ 125mA   │ 625mW    │
+    │ pH Sensor         │  10mA   │  50mW    │
+    ├────────────────────┼─────────┼──────────┤
+    │ TOTAL (average)   │ 237mA   │ 1.2W     │
+    │ TOTAL (peak)      │ 417mA   │ 2.1W     │
+    └────────────────────┴─────────┴──────────┘
+    
+    Battery Life (2x 18650 @ 2600mAh each = 5200mAh):
+    • Average draw: 237mA → ~22 hours continuous
+    • With heater duty cycle 30%: ~36 hours
+    • Solar (1W) provides 200mA in sun: extends runtime
+
+================================================================================
+                    QUICK TROUBLESHOOTING
+================================================================================
+
+    PROBLEM: ESP32 won't boot
+    → Check: 3.3V regulator output
+    → Check: GPIO 0 pulled LOW for upload mode
+    → Check: No shorts on power rails
+    
+    PROBLEM: pH readings erratic
+    → Check: Probe fully submerged
+    → Check: Calibrate at pH 7 first
+    → Check: Shielded cable for pH probe (noisy!)
+    
+    PROBLEM: Temperature wrong
+    → Check: Beta value in code (3950 for common NTC)
+    → Check: 10K pull-up resistor value
+    → Check: No dry contact on thermistor
+    
+    PROBLEM: No electrochemical signal
+    → Check: All 3 electrodes in solution
+    → Check: LMP91000 configured (bias voltage set)
+    → Check: Electrodes not touching (short)
+    → Check: Graphite leads have good electrical contact
+    
+    PROBLEM: Heater won't turn on
+    → Check: MOSFET is IRLZ44N (logic level, NOT IRFZ44N)
+    → Check: 12V present at heating pad
+    → Check: PWM signal on GPIO 4 with scope/multimeter
+
+================================================================================
+                              END OF DIAGRAM
+================================================================================
