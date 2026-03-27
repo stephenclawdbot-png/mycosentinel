@@ -1,0 +1,110 @@
+@startuml MycoSentinel_10Node_Network
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle rectangle
+
+package "Cloud Services" #LightBlue {
+  [Grafana Dashboard] as Grafana
+  [Data Storage] as Storage
+  [Alert Service] as Alerts
+}
+
+package "Gateway Node" #LightGreen {
+  [Raspberry Pi 4/5\n(Gateway)] as Gateway
+  [MQTT Broker\nMosquitto] as MQTT
+  [InfluxDB] as DB
+  [Node-RED] as NodeRed
+}
+
+package "Sector A\n(Upwind Reference)" #LightYellow {
+  [MS-A1\nID:MS01] as A1
+  [MS-A2\nID:MS02] as A2
+  [MS-A3\nID:MS03] as A3
+}
+
+package "Sector B\n(Primary Monitor)" #LightYellow {
+  [MS-B1\nID:MS04] as B1
+  [MS-B2\nID:MS05] as B2
+  [MS-B3\nID:MS06] as B3
+}
+
+package "Sector C\n(Control/Baseline)" #LightYellow {
+  [MS-C1\nID:MS07] as C1
+  [MS-C2\nID:MS08] as C2
+  [MS-C3\nID:MS09] as C3
+  [MS-C4\nID:MS10] as C4
+}
+
+' Cloud connections
+Grafana --> Storage : Query
+Gateway --> Grafana : 
+Gateway --> Storage : 
+NodeRed --> Alerts : Trigger
+
+' Gateway internal
+Gateway --> MQTT : 
+Gateway --> DB : 
+Gateway --> NodeRed : 
+
+' WiFi connections (MQTT)
+A1 --> MQTT : WiFi\n192.168.10.11
+A2 --> MQTT : WiFi\n192.168.10.12
+A3 --> MQTT : WiFi\n192.168.10.13
+B1 --> MQTT : WiFi\n192.168.10.14
+B2 --> MQTT : WiFi\n192.168.10.15
+B3 --> MQTT : WiFi\n192.168.10.16
+C1 --> MQTT : WiFi\n192.168.10.17
+C2 --> MQTT : WiFi\n192.168.10.18
+C3 --> MQTT : WiFi\n192.168.10.19
+C4 --> MQTT : WiFi\n192.168.10.20
+
+' Inter-node mesh (for backup)
+A1 <--> A2 : Mesh
+A2 <--> A3 : Mesh
+B1 <--> B2 : Mesh
+B2 <--> B3 : Mesh
+C1 <--> C2 : Mesh
+C2 <--> C3 : Mesh
+C3 <--> C4 : Mesh
+
+' Cross-sector links
+A2 <--> B2 : Mesh
+B2 <--> C2 : Mesh
+A3 <--> B1 : Mesh
+
+note right of A1
+  Node Details:
+  • RPi Zero 2 W
+  • Pi Camera + ADC
+  • 20W Solar + Battery
+  • Bioreactor with S. cerevisiae
+  • Detection: Hg²⁺ (2ppb)
+end note
+
+note bottom of Gateway
+  Gateway Details:
+  • RPi 4/5 (4GB+)
+  • SSD 256GB
+  • MQTT Broker (1883)
+  • InfluxDB + Node-RED
+  • 4G/LTE Backhaul
+end note
+
+note bottom of Sector C
+  Coverage: 500m radius
+  Frequency: 2.4GHz WiFi
+  Protocol: MQTT over TCP
+  Message Rate: 1/min/node
+end note
+
+legend right
+  |= Color |= Meaning |
+  | <#LightBlue> | Cloud/Infrastructure |
+  | <#LightGreen> | Gateway/Hub |
+  | <#LightYellow> | Sensor Nodes |
+  | Solid | Primary WiFi |
+  | Dotted | Mesh Fallback |
+endlegend
+
+@enduml
