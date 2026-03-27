@@ -1,0 +1,113 @@
+{
+  "project_id": "MYCOSENTINEL-ENV-10NODE",
+  "project_name": "MycoSentinel Environmental Monitoring Network",
+  "version": "1.0.0",
+  "status": "deployment_ready",
+  "status_detail": "10-node environmental sensor network configured for deployment",
+  "created_at": "2026-03-28T04:47:00+08:00",
+  "updated_at": "2026-03-28T04:47:00+08:00",
+  "components": {
+    "gateway": {
+      "status": "pending_deployment",
+      "hardware": "Raspberry Pi 4B 8GB",
+      "ip": "192.168.1.100",
+      "services": ["mosquitto", "influxdb", "grafana", "nodered", "telegraf"]
+    },
+    "sensor_nodes": {
+      "total": 10,
+      "deployed": 0,
+      "pending": 10,
+      "failed": 0,
+      "hardware": "Raspberry Pi Zero 2 W",
+      "sensors": ["SCD30", "SPS30", "SGP40", "DHT22"]
+    },
+    "network": {
+      "type": "B.A.T.M.A.N. mesh + MQTT",
+      "status": "pending_configuration",
+      "gateway_ip": "192.168.1.100",
+      "node_subnet": "192.168.1.101-110"
+    },
+    "data_pipeline": {
+      "storage": "InfluxDB",
+      "visualization": "Grafana",
+      "retention_policies": ["1h_raw", "1d_agg", "30d_agg"],
+      "status": "pending_setup"
+    }
+  },
+  "deployment_files": {
+    "config": "/mycosentinel/deployment/deploy_config.json",
+    "script": "/mycosentinel/deployment/deploy_10node.py",
+    "deployment_guide": "/mycosentinel/deployment/DEPLOYMENT_GUIDE.md",
+    "node_provisioner": "/mycosentinel/deployment/node_provision.sh",
+    "docker_compose": "/mycosentinel/deployment/docker-compose.yml"
+  },
+  "deployment_steps": [
+    {
+      "step": 1,
+      "name": "Gateway Provisioning",
+      "status": "pending",
+      "command": "python3 deploy_10node.py --provision-gateway"
+    },
+    {
+      "step": 2,
+      "name": "Mesh Network Configuration",
+      "status": "pending",
+      "command": "python3 deploy_10node.py --mesh-only"
+    },
+    {
+      "step": 3,
+      "name": "Data Pipeline Setup",
+      "status": "pending",
+      "command": "python3 deploy_10node.py --pipeline-only"
+    },
+    {
+      "step": 4,
+      "name": "Node Deployment",
+      "status": "pending",
+      "command": "python3 deploy_10node.py --deploy-nodes"
+    },
+    {
+      "step": 5,
+      "name": "Calibration & Verification",
+      "status": "pending",
+      "command": "python3 deploy_10node.py --calibrate MS-A1"
+    }
+  ],
+  "node_inventory": [
+    {"id": "MS-A1", "status": "pending", "ip": "192.168.1.101", "sector": "A"},
+    {"id": "MS-A2", "status": "pending", "ip": "192.168.1.102", "sector": "A"},
+    {"id": "MS-A3", "status": "pending", "ip": "192.168.1.103", "sector": "A"},
+    {"id": "MS-B1", "status": "pending", "ip": "192.168.1.104", "sector": "B"},
+    {"id": "MS-B2", "status": "pending", "ip": "192.168.1.105", "sector": "B"},
+    {"id": "MS-B3", "status": "pending", "ip": "192.168.1.106", "sector": "B"},
+    {"id": "MS-C1", "status": "pending", "ip": "192.168.1.107", "sector": "C"},
+    {"id": "MS-C2", "status": "pending", "ip": "192.168.1.108", "sector": "C"},
+    {"id": "MS-C3", "status": "pending", "ip": "192.168.1.109", "sector": "C"},
+    {"id": "MS-C4", "status": "pending", "ip": "192.168.1.110", "sector": "C"}
+  ],
+  "monitoring": {
+    "dashboard_url": "http://192.168.1.100:3000",
+    "mqtt_broker": "192.168.1.100:1883",
+    "influxdb": "192.168.1.100:8086"
+  },
+  "thresholds": {
+    "co2_ppm": {"warning": 1000, "critical": 1500},
+    "pm2_5_ug_m3": {"warning": 35, "critical": 75},
+    "pm10_ug_m3": {"warning": 150, "critical": 250},
+    "voc_index": {"warning": 200, "critical": 300},
+    "temperature_c": {"min": 5, "max": 45},
+    "humidity_percent": {"min": 10, "max": 95}
+  },
+  "calibration": {
+    "initial_date": "2026-03-28",
+    "frequency_days": 30,
+    "reference_equipment": "Sensirion SCD30 Dev Kit, BAM1020 PM Monitor"
+  },
+  "notes": [
+    "Deployment script created: deploy_10node.py",
+    "Configuration file created: deploy_config.json",
+    "Target hardware: Raspberry Pi Zero 2 W with environmental sensors",
+    "Mesh networking: B.A.T.M.A.N. advanced (batadv)",
+    "Power: Solar + battery for field deployment"
+  ]
+}
