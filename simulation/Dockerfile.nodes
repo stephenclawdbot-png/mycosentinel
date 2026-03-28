@@ -1,0 +1,22 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    paho-mqtt==1.6.1 \
+    requests==2.31.0 \
+    numpy==1.25.2
+
+# Create results directory
+RUN mkdir -p /results
+
+WORKDIR /app
+
+CMD ["python3", "-u", "node_simulator.py"]

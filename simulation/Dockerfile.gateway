@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    fastapi==0.104.1 \
+    uvicorn[standard]==0.24.0 \
+    paho-mqtt==1.6.1 \
+    influxdb-client==1.38.0 \
+    python-socketio==5.10.0 \
+    aiohttp==3.9.0 \
+    pydantic==2.5.0 \
+    typing-extensions>=4.8.0
+
+# Copy gateway code
+COPY gateway.py /app/gateway.py
+
+# Create logs directory
+RUN mkdir -p /app/logs
+
+EXPOSE 8000 8001
+
+CMD ["python3", "-u", "/app/gateway.py"]

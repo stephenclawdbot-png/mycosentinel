@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MycoSentinel Network Dashboard</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --accent-danger: #e94560;
+            --accent-success: #16c79a;
+            --accent-warning: #f9a825;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: var(--bg-secondary);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--bg-card);
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+        }
+        
+        .status-bar {
+            background: var(--bg-card);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-danger);
+        }
+        
+        .status-dot.online { background: var(--accent-success); }
+        .status-dot.offline { background: var(--accent-danger); }
+        .status-dot.warning { background: var(--accent-warning); }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card h3 {
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .metric {
+            font-size: 3em;
+            font-weight: bold;
+            color: var(--accent-danger);
+            margin: 10px 0;
+        }
+        
+        .metric.online { color: var(--accent-success); }
+        .metric.offline { color: var(--accent-danger); }
+        .metric.warning { color: var(--accent-warning); }
+        
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+        
+        /* Sector Heatmap */
+        .sectors-container {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .sector {
+            width: 180px;
+            padding: 20px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            text-align: center;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .sector.active {
+            border-color: var(--accent-success);
+            box-shadow: 0 0 20px rgba(22, 199, 154, 0.3);
+        }
+        
+        .sector.warning {
+            border-color: var(--accent-warning);
+            box-shadow: 0 0 20px rgba(249, 168, 37, 0.3);
+        }
+        
+        .sector.alert {
+            border-color: var(--accent-danger);
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .sector h2 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        
+        .sector .node-count {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+        
+        .sector .anomaly-level {
+            font-size: 0.8em;
+            margin-top: 5px;
+            color: var(--text-secondary);
+        }
+        
+        /* Network Topology Map */
+        .topology {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .gateway-node {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+        }
+        
+        .sector-row {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        .sensor-node {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: 3px solid var(--accent-success);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .sensor-node:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(22, 199, 154, 0.5);
+        }
+        
+        .sensor-node.offline {
+            border-color: var(--accent-danger);
+            background: rgba(233, 69, 96, 0.2);
+        }
+        
+        .sensor-node.warning {
+            border-color: var(--accent-warning);
+            background: rgba(249, 168, 37, 0.2);
+        }
+        
+        .sensor-node.alert {
+            border-color: var(--accent-danger);
+            background: rgba(233, 69, 96, 0.4);
+            animation: flash 1s infinite;
+        }
+        
+        @keyframes flash {
+            0%, 100% { border-color: var(--accent-danger); }
+            50% { border-color: #ff6b6b; }
+        }
+        
+        .sensor-node .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-success);
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+        
+        .sensor-node.alert .status-indicator { background: var(--accent-danger); }
+        .sensor-node.warning .status-indicator { background: var(--accent-warning); }
+        
+        /* Alerts Panel */
+        #alerts-panel {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .alert-item {
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .alert-item.critical {
+            background: rgba(233, 69, 96, 0.2);
+            border-left-color: var(--accent-danger);
+        }
+        
+        .alert-item.warning {
+            background: rgba(249, 168, 37, 0.2);
+            border-left-color: var(--accent-warning);
+        }
+        
+        .alert-item.info {
+            background: rgba(22, 199, 154, 0.2);
+            border-left-color: var(--accent-success);
+        }
+        
+        .alert-time {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+        }
+        
+        .alert-message {
+            font-weight: bold;
+            margin-top: 4px;
+        }
+        
+        .alert-node {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        
+        /* Data Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--bg-secondary);
+        }
+        
+        th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        .status-badge.online {
+            background: rgba(22, 199, 154, 0.2);
+            color: var(--accent-success);
+        }
+        
+        .status-badge.offline {
+            background: rgba(233, 69, 96, 0.2);
+            color: var(--accent-danger);
+        }
+        
+        /* Charts Container */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .chart-container {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            height: 300px;
+            position: relative;
+        }
+        
+        .chart-container h3 {
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+        
+        .mini-chart {
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            padding: 10px;
+        }
+        
+        .chart-bar {
+            flex: 1;
+            background: var(--accent-success);
+            min-width: 4px;
+            border-radius: 2px 2px 0 0;
+            transition: height 0.3s ease;
+        }
+        
+        .chart-bar.warning { background: var(--accent-warning); }
+        .chart-bar.alert { background: var(--accent-danger); }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .metric {
+                font-size: 2em;
+            }
+            
+            .sector {
+                width: 100px;
+                padding: 15px;
+            }
+            
+            .sensor-node {
+                width: 50px;
+                height: 50px;
+                font-size: 0.65em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🍄 MycoSentinel Network Dashboard</h1>
+        <p>10-Node Biosensor Network Simulation</p>
+    </header>
+    
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-dot" id="mqtt-status-dot"></span>
+            <span id="mqtt-status">MQTT Connecting...</span>
+        </div>
+        <div class="status-item">
+            <span class="status-dot" id="gateway-status-dot"></span>
+            <span id="gateway-status">Gateway Connecting...</span>
+        </div>
+        <div class="status-item">
+            <span>Data Rate: </span>
+            <strong id="data-rate">0 msg/s</strong>
+        </div>
+        <div class="status-item">
+            <span>Uptime: </span>
+            <strong id="uptime">0s</strong>
+        </div>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="grid">
+        <div class="card">
+            <h3>📊 Network Health</h3>
+            <div class="metric" id="registered-count">0/10</div>
+            <div class="metric-label">Nodes Registered</div>
+            
+            <div class="metric online" id="online-count">0</div>
+            <div class="metric-label">Nodes Online</div>
+            
+            <div class="metric offline" id="offline-count">0</div>
+            <div class="metric-label">Nodes Offline</div>
+        </div>
+        
+        <div class="card">
+            <h3>🧪 Sensor Data</h3>
+            <div class="metric" id="total-readings">0</div>
+            <div class="metric-label">Total Readings</div>
+            
+            <div class="metric" id="avg-optical">0.00</div>
+            <div class="metric-label">Avg Optical Response</div>
+            
+            <div class="metric" id="avg-electrical">0.00</div>
+            <div class="metric-label">Avg Electrical Response</div>
+        </div>
+        
+        <div class="card">
+            <h3>🚨 Active Alerts</h3>
+            <div class="metric" id="alert-count">0</div>
+            <div class="metric-label">Unhandled Alerts</div>
+            
+            <div id="alerts-panel">
+                <em style="color: var(--text-secondary);">No active alerts</em>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sector Heat Map -->
+    <div class="card" style="margin: 0 20px;">
+        <h3>🌡️ Sector Heat Map</h3>
+        <div class="sectors-container">
+            <div class="sector" id="sector-A" data-sector="A">
+                <h2>Sector A</h2>
+                <div class="node-count" id="sector-a-count">0</div>
+                <div class="anomaly-level" id="sector-a-status">Normal</div>
+            </div>
+            <div class="sector" id="sector-B" data-sector="B">
+                <h2>Sector B</h2>
+                <div class="node-count" id="sector-b-count">0</div>
+                <div class="anomaly-level" id="sector-b-status">Normal</div>
+            </div>
+            <div class="sector" id="sector-C" data-sector="C">
+                <h2>Sector C</h2>
+                <div class="node-count" id="sector-c-count">0</div>
+                <div class="anomaly-level" id="sector-c-status">Normal</div>
+            </div>
+            <div class="sector" id="sector-D" data-sector="D">
+                <h2>Sector D</h2>
+                <div class="node-count" id="sector-d-count">0</div>
+                <div class="anomaly-level" id="sector-d-status">Normal</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Network Topology -->
+    <div class="card" style="margin: 20px;">
+        <h3>🌐 Network Topology (10 Nodes)</h3>
+        <div class="topology">
+            <div class="gateway-node">
+                📡 Gateway (MS-GW)
+            </div>
+            
+            <div class="sector-row" id="topology-A">
+                <div class="sensor-node" data-node="MS-A1">
+                    <span>MS-A1</span>
+                    <span class="status-indicator"></span>
+                </div>
+                <div class="sensor-node" data-node="MS-A2">
+                    <span>MS-A2</span>
+                    <span class="status-indicator"></span>
+                </div>
+                <div class="sensor-node" data-node="MS-A3">
+                    <span>MS-A3</span>
+                    <span class="status-indicator"></span>
+                </div>
+            </div>
+            
+            <div class="sector-row" id="topology-B">
+                <div class="sensor-node" data-node="MS-B1">
+                    <span>MS-B1</span>
+                    <span class="status-indicator"></span>
+                </div>
+                <div class="sensor-node" data-node="MS-B2">
+                    <span>MS-B2</span>
+                    <span class="status-indicator"></span>
+                </div>
+                <div class="sensor-node" data-node="MS-B3">
+                    <span>MS-B3</span>
+                    <span class="status-indicator"></span>
+                </div>
+            </div>
+            
+            <div class="sector-row" id="topology-C">
+                <div class="sensor-node" data-node="MS-C1">
+                    <span>MS-C1</span>
+                    <span class="status-indicator"></span>
+                </div>
+                <div class="sensor-node" data-node="MS-C2">
+                    <span>MS-C2</span>
+                    <span class="status-indicator"></span>
+                </div>
+                <div class="sensor-node" data-node="MS-C3">
+                    <span>MS-C3</span>
+                    <span class="status-indicator"></span>
+                </div>
+            </div>
+            
+            <div class="sector-row" id="topology-D">
+                <div class="sensor-node" data-node="MS-D1">
+                    <span>MS-D1</span>
+                    <span class="status-indicator"></span>
+                </div>
+                <div class="sensor-node" data-node="MS-D2">
+                    <span>MS-D2</span>
+                    <span class="status-indicator"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-time Charts -->
+    <div class="charts-grid">
+        <div class="chart-container">
+            <h3>📈 Optical Response (Real-time)</h3>
+            <div class="mini-chart" id="optical-chart">
+                <!-- Bars generated by JS -->
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>📉 Electrical Response (Real-time)</h3>
+            <div class="mini-chart" id="electrical-chart">
+                <!-- Bars generated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Node Status Table -->
+    <div class="card" style="margin: 20px;">
+        <h3>📋 Node Status Details</h3>
+        <table id="node-table">
+            <thead>
+                <tr>
+                    <th>Node ID</th>
+                    <th>Sector</th>
+                    <th>Status</th>
+                    <th>Last Seen</th>
+                    <th>Optical</th>
+                    <th>Electrical</th>
+                    <th>Anomaly</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-secondary);">
+                        Loading node data...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Configuration
+        const GATEWAY_API = window.location.hostname === 'localhost' 
+            ? 'http://localhost:8000' 
+            : 'http://' + window.location.hostname + ':8000';
+        
+        const WS_URL = window.location.hostname === 'localhost'
+            ? 'ws://localhost:8000/ws'
+            : 'ws://' + window.location.hostname + ':8000/ws';
+        
+        // State
+        let alerts = [];
+        let nodes = [];
+        let opticalHistory = new Array(50).fill(0);
+        let electricalHistory = new Array(50).fill(0);
+        let startTime = Date.now();
+        let messageCount = 0;
+        let lastMessageTime = Date.now();
+        
+        // Initialize chart bars
+        function initCharts() {
+            const opticalChart = document.getElementById('optical-chart');
+            const electricalChart = document.getElementById('electrical-chart');
+            
+            for (let i = 0; i < 50; i++) {
+                opticalChart.innerHTML += '<div class="chart-bar" style="height: 5%"></div>';
+                electricalChart.innerHTML += '<div class="chart-bar" style="height: 5%"></div>';
+            }
+        }
+        
+        // Update charts
+        function updateCharts(avgOptical, avgElectrical) {
+            opticalHistory.shift();
+            opticalHistory.push(avgOptical || 0.95);
+            
+            electricalHistory.shift();
+            electricalHistory.push(avgElectrical || 1.0);
+            
+            const opticalBars = document.querySelectorAll('#optical-chart .chart-bar');
+            const electricalBars = document.querySelectorAll('#electrical-chart .chart-bar');
+            
+            opticalHistory.forEach((val, i) => {
+                const height = Math.min(100, Math.max(5, val * 50));
+                opticalBars[i].style.height = height + '%';
+                opticalBars[i].className = 'chart-bar' + (val > 1.1 ? ' warning' : val < 0.8 ? ' alert' : '');
+            });
+            
+            electricalHistory.forEach((val, i) => {
+                const height = Math.min(100, Math.max(5, val * 50));
+                electricalBars[i].style.height = height + '%';
+                electricalBars[i].className = 'chart-bar' + (val > 1.2 ? ' warning' : '');
+            });
+        }
+        
+        // WebSocket connection
+        let ws;
+        function connectWebSocket() {
+            ws = new WebSocket(WS_URL);
+            
+            ws.onopen = () => {
+                document.getElementById('mqtt-status-dot').classList.add('online');
+                document.getElementById('mqtt-status').textContent = 'WebSocket Connected';
+            };
+            
+            ws.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+                messageCount++;
+                lastMessageTime = Date.now();
+                
+                if (msg.type === 'alert') {
+                    alerts.unshift(msg.data);
+                    updateAlertsPanel();
+                } else if (msg.type === 'data') {
+                    updateDataFromWebSocket(msg.data);
+                }
+            };
+            
+            ws.onclose = () => {
+                document.getElementById('mqtt-status-dot').classList.remove('online');
+                document.getElementById('mqtt-status').textContent = 'WebSocket Disconnected';
+                setTimeout(connectWebSocket, 5000);
+            };
+            
+            ws.onerror = (err) => {
+                console.error('WebSocket error:', err);
+            };
+        }
+        
+        // Fetch data from API
+        async function fetchData() {
+            try {
+                const [health, nodesData, agg, alertList] = await Promise.all([
+                    fetch(`${GATEWAY_API}/api/v1/health`).then(r => r.json()),
+                    fetch(`${GATEWAY_API}/api/v1/nodes`).then(r => r.json()),
+                    fetch(`${GATEWAY_API}/api/v1/aggregate/all`).then(r => r.json()),
+                    fetch(`${GATEWAY_API}/api/v1/alerts`).then(r => r.json())
+                ]);
+                
+                updateHealthMetrics(health);
+                updateNodes(nodesData);
+                updateAggregation(agg);
+                
+                // Merge WebSocket alerts with fetched alerts
+                const fetchedAlerts = alertList.alerts.filter(a => !a.acknowledged);
+                alerts = [...new Map([...alerts.map(a => [a.id, a]), ...fetchedAlerts.map(a => [a.id, a])]).values()];
+                updateAlertsPanel();
+                
+                document.getElementById('gateway-status-dot').classList.add('online');
+                document.getElementById('gateway-status').textContent = 'Gateway Connected';
+                
+            } catch (e) {
+                console.error('Fetch error:', e);
+                document.getElementById('gateway-status-dot').classList.remove('online');
+                document.getElementById('gateway-status').textContent = 'Gateway Disconnected';
+            }
+        }
+        
+        function updateHealthMetrics(data) {
+            const registry = data.registry;
+            document.getElementById('registered-count').textContent = 
+                `${registry.online_nodes + registry.offline_nodes}/${registry.expected_nodes}`;
+            document.getElementById('online-count').textContent = registry.online_nodes;
+            document.getElementById('offline-count').textContent = registry.offline_nodes;
+            
+            // Update uptime
+            const uptime = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('uptime').textContent = formatDuration(uptime);
+        }
+        
+        function updateNodes(data) {
+            nodes = data.nodes;
+            const tbody = document.getElementById('node-table').querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            const sectors = {A: {count: 0, anomaly: 0}, B: {count: 0, anomaly: 0}, 
+                          C: {count: 0, anomaly: 0}, D: {count: 0, anomaly: 0}};
+            
+            data.nodes.forEach(node => {
+                sectors[node.sector].count++;
+                
+                const tr = document.createElement('tr');
+                const statusClass = node.status === 'online' ? 'online' : 'offline';
+                const lastSeen = Math.floor(node.last_seen_seconds_ago);
+                
+                tr.innerHTML = `
+                    <td>${node.node_id}</td>
+                    <td>${node.sector}</td>
+                    <td><span class="status-badge ${statusClass}">${node.status}</span></td>
+                    <td>${lastSeen}s ago</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            // Update sector heatmap
+            Object.keys(sectors).forEach(sector => {
+                const sectorEl = document.getElementById(`sector-${sector}`);
+                const count = sectors[sector].count;
+                document.getElementById(`sector-${sector.toLowerCase()}-count`).textContent = count + ' nodes';
+                
+                if (count > 0) {
+                    sectorEl.classList.add('active');
+                }
+            });
+            
+            updateTopology(data.nodes);
+        }
+        
+        function updateAggregation(data) {
+            const stats = data.statistics;
+            document.getElementById('total-readings').textContent = 
+                (stats.total_readings || 0).toLocaleString();
+            document.getElementById('avg-optical').textContent = 
+                (stats.avg_optical || 0).toFixed(3);
+            document.getElementById('avg-electrical').textContent = 
+                (stats.avg_electrical || 0).toFixed(3);
+            
+            updateCharts(stats.avg_optical || 1.0, stats.avg_electrical || 1.0);
+        }
+        
+        function updateTopology(nodes) {
+            nodes.forEach(node => {
+                const nodeEl = document.querySelector(`[data-node="${node.node_id}"]`);
+                if (nodeEl) {
+                    nodeEl.classList.remove('offline', 'warning', 'alert');
+                    if (node.status === 'offline') {
+                        nodeEl.classList.add('offline');
+                    }
+                }
+            });
+        }
+        
+        function updateDataFromWebSocket(data) {
+            // Update node in table
+            const rows = document.querySelectorAll('#node-table tbody tr');
+            rows.forEach(row => {
+                if (row.cells[0]?.textContent === data.node_id) {
+                    row.cells[4].textContent = data.optical.normalized.toFixed(3);
+                    row.cells[5].textContent = data.electrical.normalized_response.toFixed(3);
+                    
+                    const anomaly = data.processing.anomaly_score.toFixed(2);
+                    row.cells[6].textContent = anomaly;
+                    
+                    // Color code anomaly
+                    if (data.processing.mycotoxin_detected) {
+                        row.cells[6].style.color = 'var(--accent-danger)';
+                        row.style.background = 'rgba(233, 69, 96, 0.1)';
+                        
+                        // Update topology
+                        const nodeEl = document.querySelector(`[data-node="${data.node_id}"]`);
+                        if (nodeEl) nodeEl.classList.add('alert');
+                    }
+                }
+            });
+        }
+        
+        function updateAlertsPanel() {
+            const count = alerts.length;
+            const alertCountEl = document.getElementById('alert-count');
+            alertCountEl.textContent = count;
+            alertCountEl.className = 'metric ' + (count > 0 ? 'offline' : 'online');
+            
+            const container = document.getElementById('alerts-panel');
+            if (alerts.length === 0) {
+                container.innerHTML = '<em style="color: var(--text-secondary);">No active alerts</em>';
+                return;
+            }
+            
+            container.innerHTML = alerts.slice(0, 10).map(alert => {
+                const time = new Date(alert.timestamp * 1000).toLocaleTimeString();
+                return `
+                    <div class="alert-item ${alert.severity}">
+                        <div class="alert-time">${time}</div>
+                        <div class="alert-message">${alert.message}</div>
+                        <div class="alert-node">Node: ${alert.node_id}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const hours = Math.floor(mins / 60);
+            const secs = seconds % 60;
+            if (hours > 0) return `${hours}h ${mins % 60}m`;
+            if (mins > 0) return `${mins}m ${secs}s`;
+            return `${secs}s`;
+        }
+        
+        // Calculate message rate
+        function updateMessageRate() {
+            const now = Date.now();
+            const elapsed = (now - lastMessageTime) / 1000;
+            const rate = elapsed < 1 ? messageCount : (messageCount / elapsed).toFixed(1);
+            document.getElementById('data-rate').textContent = `${rate} msg/s`;
+        }
+        
+        // Initialize
+        initCharts();
+        initCharts();
+        connectWebSocket();
+        fetchData();
+        
+        setInterval(fetchData, 1000);
+        setInterval(updateMessageRate, 2000);
+    </script>
+</body>
+</html>

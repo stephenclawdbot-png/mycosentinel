@@ -1,0 +1,196 @@
+# MycoSentinel 10-Node Simulation
+# Docker Compose for full-stack software simulation
+# 
+# Usage:
+#   cd /mycosentinel/simulation
+#   docker-compose up -d
+#   docker-compose logs -f
+#
+# Services:
+#   - mosquitto: MQTT broker for node communication
+#   - influxdb: Time-series database for sensor data
+#   - gateway: FastAPI gateway aggregator
+#   - node-simulators: 10 simulated sensor nodes (run via script)
+#   - dashboard: Real-time web dashboard
+
+version: "3.8"
+
+services:
+  # ============================================================================
+  # MQTT Broker - Core communication hub for simulated nodes
+  # ============================================================================
+  mosquitto:
+    image: eclipse-mosquitto:2.0.18
+    container_name: mycosentinel-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"      # Standard MQTT
+      - "9001:9001"      # WebSocket for dashboard
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - mycosentinel-sim
+    healthcheck:
+      test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "health", "-m", "test"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================================================
+  # InfluxDB - Time-series database for sensor data
+  # ============================================================================
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: mycosentinel-influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - ./influxdb/config:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=mycosentinel_sim_pass
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=mycosentinel-sim-token
+      - DOCKER_INFLUXDB_INIT_ORG=mycosentinel
+      - DOCKER_INFLUXDB_INIT_BUCKET=sensor-data
+    networks:
+      - mycosentinel-sim
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # Gateway - FastAPI aggregator and REST API
+  # ============================================================================
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    container_name: mycosentinel-gateway
+    restart: unless-stopped
+    ports:
+      - "8000:8000"      # REST API
+      - "8001:8001"      # WebSocket for real-time updates
+    environment:
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - INFLUX_HOST=influxdb
+      - INFLUX_PORT=8086
+      - INFLUX_TOKEN=mycosentinel-sim-token
+      - INFLUX_ORG=mycosentinel
+      - INFLUX_BUCKET=sensor-data
+      - API_PORT=8000
+      - NODE_COUNT=10
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    volumes:
+      - ./gateway:/app
+      - gateway-logs:/app/logs
+    networks:
+      - mycosentinel-sim
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # Node Simulator Runner - Manages 10 simulated sensor nodes
+  # ============================================================================
+  node-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.nodes
+    container_name: mycosentinel-nodes
+    restart: "no"  # Run once, exit when done
+    environment:
+      - GATEWAY_HOST=gateway
+      - GATEWAY_PORT=8000
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - NODE_COUNT=10
+      - DATA_RATE_HZ=1.0
+      - SIMULATION_DURATION=300
+    depends_on:
+      - gateway
+      - mosquitto
+    volumes:
+      - ./simulation_results:/results
+      - ./node_simulator.py:/app/node_simulator.py
+    networks:
+      - mycosentinel-sim
+    command: python3 /app/node_simulator.py --gateway gateway --nodes 10 --duration 300 --scenario multi_contamination
+
+  # ============================================================================
+  # Dashboard - Web-based real-time visualization
+  # ============================================================================
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: mycosentinel-dashboard
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GATEWAY_API=http://gateway:8000
+      - MQTT_WS=ws://mosquitto:9001
+      - REFRESH_INTERVAL=1000
+    depends_on:
+      - gateway
+    volumes:
+      - ./dashboard:/usr/share/nginx/html:ro
+    networks:
+      - mycosentinel-sim
+
+  # ============================================================================
+  # Telegraph - Data pipeline: MQTT → InfluxDB (optional but recommended)
+  # ============================================================================
+  telegraf:
+    image: telegraf:1.28-alpine
+    container_name: mycosentinel-telegraf
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+      - influxdb
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    environment:
+      - INFLUX_TOKEN=mycosentinel-sim-token
+      - INFLUX_URL=http://influxdb:8086
+      - MQTT_BROKER=mosquitto
+    networks:
+      - mycosentinel-sim
+
+# ==============================================================================
+# Networks
+# ==============================================================================
+networks:
+  mycosentinel-sim:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+# ==============================================================================
+# Volumes (persistent data)
+# ==============================================================================
+volumes:
+  influxdb-data:
+    driver: local
+  gateway-logs:
+    driver: local
